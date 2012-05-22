@@ -106,25 +106,31 @@ public class ZFind {
 
             if(!regularExpression && fileName.indexOf("*")!=-1){
                 setRegularExpression(true);
-                fileName=fileName.replace("*",".*");
+                fileName=fileName.replace(".","\\."); //any suffix . needs to be escaped in regex
+                fileName=fileName.replace("*",".*");  //replace regular wildcard with equivalent regex
             }
 
             Pattern p = null;
             if (regularExpression) {
                 if (!fileName.endsWith("$")) //we want only node matching
                     fileName = fileName + "$";
+               
                 p = (ignoreCase) ? Pattern.compile(fileName, Pattern.CASE_INSENSITIVE) : Pattern.compile(fileName);
             }
 
             for (String entry : entries) {
+                //get the node for each entry
+                int indx=(entry.indexOf("/")==-1)?0:entry.lastIndexOf("/")+1;
+                String node=entry.substring(indx);
+
                 if (regularExpression) {
-                    Matcher m = p.matcher(entry);
+                    Matcher m = p.matcher(node);
                     if (m.find())
                         matchedEntries.add(entry);
                 } else {
-                    String s = (ignoreCase) ? entry.toLowerCase() : entry;
+                    String s = (ignoreCase) ? node.toLowerCase() : node;
                     String f = (ignoreCase) ? fileName.toLowerCase() : fileName;
-                    if (s.endsWith(f))
+                    if (s.equals(f))
                         matchedEntries.add(entry);
 
                 }

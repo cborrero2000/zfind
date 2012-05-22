@@ -45,7 +45,7 @@ or
 
 Use maven to create the binary (zfind-RELEASE.one-jar.jar). Also available in sourceforge : https://sourceforge.net/p/zfind
 
-<br/><br/>
+
 
 ###License###
 

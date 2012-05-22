@@ -40,6 +40,21 @@ or
         java -jar zfind.jar -h
 
 
+###API Use###
+
+        //Normal file search
+        ZFind finder=new ZFind(new File("/path/to/target.zip"));
+        finder.setSearchFileName("foo.bar");
+        finder.setIgnoreCase(true);
+        List<String> allEntries=finder.getAllEntries();
+        List<String> matchingEntries=finder.getMatchedEntries();
+
+        //Regex file search
+        finder.setSearchFileName("foo[0-9]*\\.bar");
+        finder.setRegularExpression(true);
+        matchingEntries=finder.getMatchedEntries();
+
+
 
 ###Binary build###
 

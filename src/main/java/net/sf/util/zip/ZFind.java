@@ -140,7 +140,7 @@ public class ZFind {
      *
      * @param fileName filename to search for
      */
-    public void setFileName(String fileName) {
+    public void setSearchFileName(String fileName) {
         this.fileName = fileName;
     }
 
@@ -218,7 +218,7 @@ public class ZFind {
 
         boolean isFind = false;
         if (options.has("f")) {
-            zFind.setFileName(options.valueOf("f").toString());
+            zFind.setSearchFileName(options.valueOf("f").toString());
             isFind = true;
         }
 
@@ -227,5 +227,7 @@ public class ZFind {
         for (int i = 0; i < entries.size(); i++) {
             System.out.println(entries.get(i));
         }
+
+
     }
 }

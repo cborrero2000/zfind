@@ -26,10 +26,10 @@ import java.io.File;
  */
 public class FileAnalyzerFactory {
 
-    private DirectoryAnalyzer directoryAnalyzer = new DirectoryAnalyzer();
-    private ArchieveAnalyzer archieveAnalyzer = new ArchieveAnalyzer();
-    private CompressorAnalyzer compressorAnalyzer = new CompressorAnalyzer();
-    private SimpleFileAnalyzer simpleFileAnalyzer = new SimpleFileAnalyzer();
+    private DirectoryAnalyzer directoryAnalyzer = null;
+    private ArchieveAnalyzer archieveAnalyzer = null;
+    private CompressorAnalyzer compressorAnalyzer = null;
+    private SimpleFileAnalyzer simpleFileAnalyzer = null;
 
     public DirectoryAnalyzer getDirectoryAnalyzer() {
         return directoryAnalyzer;
@@ -47,7 +47,16 @@ public class FileAnalyzerFactory {
         return simpleFileAnalyzer;
     }
 
-
+    public FileAnalyzerFactory(){
+        directoryAnalyzer = new DirectoryAnalyzer();
+        directoryAnalyzer.setAnalyzerFactory(this);
+       archieveAnalyzer = new ArchieveAnalyzer();
+        archieveAnalyzer.setAnalyzerFactory(this);
+       compressorAnalyzer = new CompressorAnalyzer();
+        compressorAnalyzer.setAnalyzerFactory(this);
+        simpleFileAnalyzer = new SimpleFileAnalyzer();
+        simpleFileAnalyzer.setAnalyzerFactory(this);
+    }
 
 
     public FileAnalyzer getAnalyzer(File file) {

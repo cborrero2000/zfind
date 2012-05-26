@@ -64,10 +64,7 @@ public class ZFindCmdline {
 
 
         OptionSet options = null;
-        System.out.println("args.len:" + args.length);
         if (args.length == 0) {
-            //printHelpOnError("Error parsing arguments. At least target zip file/folder option (-t) must be provided.", parser);
-
             Thread t = new Thread(new UIThread());
             t.start();
             t.join();

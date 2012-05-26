@@ -6,7 +6,7 @@
 
     <groupId>net.sf.util.zip</groupId>
     <artifactId>zfind</artifactId>
-    <version>1.2</version>
+    <version>1.3</version>
 
     <dependencies>
 

@@ -1,11 +1,13 @@
 package net.sf.util.zip.ui;
 
-import com.ezware.dialog.task.TaskDialog;
 import com.ezware.dialog.task.TaskDialogs;
 import net.sf.util.zip.ZipFinder;
 
 import javax.swing.*;
+import javax.swing.border.EtchedBorder;
+import java.awt.*;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
@@ -16,10 +18,11 @@ import java.util.List;
  * Time: 8:35 PM
  * To change this template use File | Settings | File Templates.
  */
-public class ZFindUI extends JFrame{
+public class ZFindUI extends JFrame {
 
-    public ZFindUI(){
+    public ZFindUI() {
         initComponents();
+
     }
 
 
@@ -36,7 +39,7 @@ public class ZFindUI extends JFrame{
         jPanel1 = new javax.swing.JPanel();
         normalSearchRadioButton = new javax.swing.JRadioButton();
         regexRadioButton = new javax.swing.JRadioButton();
-        matchCaseCheckBox = new javax.swing.JCheckBox();
+        ignoreCaseCheckBox = new javax.swing.JCheckBox();
         startScanjButton = new javax.swing.JButton();
         copyResToFilejButton = new javax.swing.JButton();
 
@@ -59,29 +62,26 @@ public class ZFindUI extends JFrame{
 
         resultDisplayTextArea.setColumns(20);
         resultDisplayTextArea.setRows(5);
+        resultDisplayTextArea.setBorder(javax.swing.BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
         resultDisplayScrollPane.setViewportView(resultDisplayTextArea);
 
         fileNameLabel.setText(" File name to search");
 
         fileNameTextField.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
-        fileNameTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fielNameTextFieldActionPerformed(evt);
-            }
-        });
+
 
         jPanel1.setBackground(new java.awt.Color(204, 204, 255));
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Search Mode"));
 
         searchModebuttonGroup.add(normalSearchRadioButton);
         normalSearchRadioButton.setSelected(true);
-        normalSearchRadioButton.setText("Normal Search");
+        normalSearchRadioButton.setText("Full Name Search (wildcard * supported)");
 
 
         searchModebuttonGroup.add(regexRadioButton);
         regexRadioButton.setText("Regular Expression");
 
-        matchCaseCheckBox.setText("Ignore Case");
+        ignoreCaseCheckBox.setText("Ignore Case");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -93,7 +93,7 @@ public class ZFindUI extends JFrame{
                                         .addComponent(normalSearchRadioButton)
                                         .addComponent(regexRadioButton))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 170, Short.MAX_VALUE)
-                                .addComponent(matchCaseCheckBox)
+                                .addComponent(ignoreCaseCheckBox)
                                 .addGap(33, 33, 33))
         );
         jPanel1Layout.setVerticalGroup(
@@ -102,7 +102,7 @@ public class ZFindUI extends JFrame{
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addGroup(jPanel1Layout.createSequentialGroup()
                                                 .addContainerGap()
-                                                .addComponent(matchCaseCheckBox))
+                                                .addComponent(ignoreCaseCheckBox))
                                         .addGroup(jPanel1Layout.createSequentialGroup()
                                                 .addComponent(normalSearchRadioButton)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -156,8 +156,8 @@ public class ZFindUI extends JFrame{
                 inputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(inputPanelLayout.createSequentialGroup()
                                 .addGroup(inputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(chosenFileTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(fileChooserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(chosenFileTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(fileChooserButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(11, 11, 11)
                                 .addGroup(inputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(fileNameLabel)
@@ -190,10 +190,6 @@ public class ZFindUI extends JFrame{
     }// </editor-fold>
 
 
-    private void fielNameTextFieldActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
-    }
-
     private void fileChooserButtonActionPerformed(java.awt.event.ActionEvent evt) {
         final JFileChooser fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -206,41 +202,45 @@ public class ZFindUI extends JFrame{
 
     private void startScanjButtonActionPerformed(java.awt.event.ActionEvent evt) {
         resultDisplayTextArea.setText("");
-        final File chosenFile=new File(chosenFileTextField.getText());
-        try{
-            
-            if(!chosenFile.exists()){
-                JOptionPane.showMessageDialog(this, "Target lookup directory or archive file does not exists!");
+        final File chosenFile = new File(chosenFileTextField.getText());
+        try {
+
+            if (!chosenFile.exists()) {
+                TaskDialogs.error("Target lookup directory or archive file does not exist!",
+                        "You must select either a directory or a archive file within which search is to be performed.");
                 chosenFileTextField.setText("");
                 return;
             }
 
-            final String fileName=fileNameTextField.getText().trim();
-            if(fileName.equals("")){
-                JOptionPane.showMessageDialog(this, "File name can not be empty!");
+            final String fileName = fileNameTextField.getText().trim();
+            if (fileName.equals("")) {
+                TaskDialogs.error("File name can not be empty!", "You must provide a file name to search.");
                 fileNameTextField.setText("");
+                fileNameTextField.requestFocus();
                 return;
             }
 
-            final boolean ignoreCase=matchCaseCheckBox.isSelected();
-            final boolean regularExpression=regexRadioButton.isSelected();
+            final boolean ignoreCase = ignoreCaseCheckBox.isSelected();
+            final boolean regularExpression = regexRadioButton.isSelected();
 
-            SwingUtilities.invokeLater(new Runnable()
-            {
-                public void run()
-                {
+
+            addResultString("Searching started. It may take several minutes depending on volume.");
+            final java.util.Timer timer = switchToBusyCursor(this);
+
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
                     try {
                         ZipFinder zFind = new ZipFinder(chosenFile);
                         zFind.setIgnoreCase(ignoreCase);
                         zFind.setRegularExpression(regularExpression);
                         zFind.setSearchFileName(fileName);
-                        List<String> matchedList=zFind.getMatchedEntries ();
+                        List<String> matchedList = zFind.getMatchedEntries();
 
-                        if(matchedList.size()==0){
-                            addResultString("[0] matching entries found.");
-                        }else{
-                            addResultString("["+matchedList.size()+"] matching entries found."); 
-                            for(String entry:matchedList)
+                        if (matchedList.size() == 0) {
+                            addResultString("[0 matching entries found]");
+                        } else {
+                            addResultString("[" + matchedList.size() + " matching entries found]\n");
+                            for (String entry : matchedList)
                                 addResultString(entry);
                         }
                     } catch (IOException e) {
@@ -248,20 +248,113 @@ public class ZFindUI extends JFrame{
                     }
                 }
             });
-            
-        }catch (Throwable t){
+            switchToNormalCursorEventThread(this, timer);
+        } catch (Throwable t) {
             TaskDialogs.showException(t);
         }
-
     }
 
-    private void addResultString(String str){
-       resultDisplayTextArea.append(str+"\n");
+    private void addResultString(String str) {
+        resultDisplayTextArea.append(str + "\n");
     }
-    
+
     private void copyResToFilejButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+
+        if (resultDisplayTextArea.getText().trim().equals("")) {
+            TaskDialogs.inform("There is no result to save!", "Do some search first.");
+            return;
+        }
+
+        final JFileChooser fc = new JFileChooser();
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        int returnVal = fc.showSaveDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            try {
+                if (file.exists()) {
+                    boolean confirmDelete = TaskDialogs.ask("The chosen file already exists!", "Are you sure you want to go ahead? File will be overwritten");
+                    if (!confirmDelete)
+                        return;
+                }
+
+                FileWriter fw = new FileWriter(file);
+                fw.write("Target directory :" + chosenFileTextField.getText() + "\n");
+                fw.write("File name searched :" + fileNameTextField.getText() + "\n");
+                fw.write("Ignore case :" + ignoreCaseCheckBox.isSelected() + "\n");
+                fw.write("Regular expression search :" + regexRadioButton.isSelected() + "\n");
+                fw.write(resultDisplayTextArea.getText());
+                fw.flush();
+                fw.close();
+                TaskDialogs.inform("Result has been successfully saved", file.getAbsolutePath());
+            } catch (Throwable t) {
+                TaskDialogs.error("Error saving result", t.getMessage());
+            }
+        }
     }
+
+
+    public static java.util.Timer switchToBusyCursor(final javax.swing.JFrame frame) {
+        startEventTrap(frame);
+        java.util.TimerTask timerTask = new java.util.TimerTask() {
+
+            public void run() {
+                startWaitCursor(frame);
+            }
+
+        };
+        final java.util.Timer timer = new java.util.Timer();
+        timer.schedule(timerTask, DELAY_MS);
+        return timer;
+    }
+
+    public static void switchToNormalCursorEventThread(final javax.swing.JFrame frame, final java.util.Timer timer) {
+
+        Runnable r = new Runnable() {
+
+            public void run() {
+                switchToNormalCursor(frame, timer);
+            }
+
+        };
+
+        javax.swing.SwingUtilities.invokeLater(r);
+
+    }
+
+    public static void switchToNormalCursor(final javax.swing.JFrame frame, final java.util.Timer timer) {
+        timer.cancel();
+        stopWaitCursor(frame);
+        stopEventTrap(frame);
+    }
+
+    private static void startWaitCursor(javax.swing.JFrame frame) {
+        frame.getGlassPane().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+        frame.getGlassPane().addMouseListener(mouseAdapter);
+        frame.getGlassPane().setVisible(true);
+    }
+
+    private static void stopWaitCursor(javax.swing.JFrame frame) {
+        frame.getGlassPane().setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+        frame.getGlassPane().removeMouseListener(mouseAdapter);
+        frame.getGlassPane().setVisible(false);
+    }
+
+    private static void startEventTrap(javax.swing.JFrame frame) {
+        frame.getGlassPane().addMouseListener(mouseAdapter);
+        frame.getGlassPane().setVisible(true);
+    }
+
+    private static void stopEventTrap(javax.swing.JFrame frame) {
+        java.awt.Toolkit.getDefaultToolkit().getSystemEventQueue();
+        frame.getGlassPane().removeMouseListener(mouseAdapter);
+        frame.getGlassPane().setVisible(false);
+    }
+
+    private static final java.awt.event.MouseAdapter mouseAdapter = new java.awt.event.MouseAdapter() {
+    };
+
+    private static final int DELAY_MS = 250;
+
 
     // Variables declaration - do not modify
     private javax.swing.JTextField chosenFileTextField;
@@ -271,7 +364,7 @@ public class ZFindUI extends JFrame{
     private javax.swing.JLabel fileNameLabel;
     private javax.swing.JPanel inputPanel;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JCheckBox matchCaseCheckBox;
+    private javax.swing.JCheckBox ignoreCaseCheckBox;
     private javax.swing.JRadioButton normalSearchRadioButton;
     private javax.swing.JRadioButton regexRadioButton;
     private javax.swing.JScrollPane resultDisplayScrollPane;
@@ -279,7 +372,6 @@ public class ZFindUI extends JFrame{
     private javax.swing.ButtonGroup searchModebuttonGroup;
     private javax.swing.JButton startScanjButton;
     // End of variables declaration
-
 
 
 }
